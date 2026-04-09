@@ -4,13 +4,18 @@ import SwiftUI
 struct PaneApp: App {
     var body: some Scene {
         MenuBarExtra("Pane", systemImage: "rectangle.split.2x2") {
-            Text("Pane — Workspace Launcher")
-                .padding()
-            Divider()
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
-            .keyboardShortcut("q")
+            MenuBarView()
+        }
+        .menuBarExtraStyle(.window)
+
+        Window("Pane Setup", id: "onboarding") {
+            OnboardingView()
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
+
+        Settings {
+            PreferencesView()
         }
     }
 }
