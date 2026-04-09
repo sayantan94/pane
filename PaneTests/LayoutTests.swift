@@ -39,6 +39,7 @@ import Foundation
 @Test func layoutDecodesFromJSON() throws {
     let json = """
     {
+        "id": "E621E1F8-C36C-495A-93FC-0C247A3E6E5F",
         "name": "Coding",
         "shortcut": "ctrl+option+1",
         "gridTemplate": "left-half+right-half",

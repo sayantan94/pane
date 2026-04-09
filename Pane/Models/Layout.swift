@@ -38,6 +38,6 @@ struct Layout: Codable, Identifiable {
     var zones: [Zone]
 
     enum CodingKeys: String, CodingKey {
-        case name, shortcut, gridTemplate, zones
+        case id, name, shortcut, gridTemplate, zones
     }
 }
