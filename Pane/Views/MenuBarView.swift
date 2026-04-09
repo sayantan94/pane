@@ -69,12 +69,11 @@ struct MenuBarView: View {
         .onAppear {
             loadLayouts()
         }
-        // TODO: uncomment when LayoutEditorView is created
-        // .sheet(isPresented: $showingEditor) {
-        //     LayoutEditorView(layout: editingLayout) {
-        //         loadLayouts()
-        //     }
-        // }
+        .sheet(isPresented: $showingEditor) {
+            LayoutEditorView(layout: editingLayout) {
+                loadLayouts()
+            }
+        }
     }
 
     private func loadLayouts() {
