@@ -12,19 +12,24 @@ Pick a grid template, assign terminals to zones with optional directory paths, a
 
 ### Install
 
-**Download the DMG** from [Releases](https://github.com/sayantan94/pane/releases/latest), open it, drag Pane to Applications. No Xcode needed.
+You can build from source or download a pre-built DMG.
 
-On first launch, macOS may say it can't verify the app. Just right-click on Pane.app and choose Open.
+**Build from source**
 
-**Or build from source** if you prefer:
+You'll need Xcode Command Line Tools. If you don't have them, run `xcode-select --install` first.
 
 ```bash
-xcode-select --install   # skip if you already have it
 git clone https://github.com/sayantan94/pane.git
 cd pane
 make install
 open /Applications/Pane.app
 ```
+
+**Download DMG**
+
+Grab `Pane.dmg` from [Releases](https://github.com/sayantan94/pane/releases/latest), open it, drag Pane to Applications.
+
+On first launch, macOS may say it can't verify the app. Just right-click on Pane.app and choose Open.
 
 ### Getting started
 
