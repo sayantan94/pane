@@ -1,42 +1,28 @@
-# Pane
+![Pane](assets/banner.svg)
 
-A macOS menu bar app that launches and arranges workspace layouts.
+---
 
-Configure named layouts — choose a grid arrangement, assign apps to zones with optional URLs and directory paths — then trigger them with a click or keyboard shortcut to launch and tile everything into place.
+**Pane** is a macOS menu bar app that launches and arranges terminal windows in configurable layouts.
 
-## Features
+Pick a grid template, assign terminals to zones with optional directory paths, and trigger it — Pane opens new windows and tiles them into position. Works across multiple monitors.
 
-- Configure named workspace layouts via a visual editor
-- Grid templates: halves, thirds, quarters, two-thirds, full screen
-- Assign any app to a zone
-- Optional URL for browser zones (opens the URL on trigger)
-- Optional directory path for terminal zones (cd's to the path on trigger)
-- Global keyboard shortcuts to trigger layouts instantly
-- Launches missing apps automatically
-- Menu bar app — lightweight, always running, no dock icon
-- Launch at login support
-- Layout data stored as human-readable JSON in `~/.config/pane/layouts/`
+![Screenshot](assets/screenshot.png)
 
-## Requirements
+---
 
-- macOS 13 (Ventura) or later
-- Accessibility permission (for window positioning)
-
-## Build
+### Build & Run
 
 ```bash
-cd Pane
 swift build -c release
+mkdir -p Pane.app/Contents/MacOS
+cp .build/release/Pane Pane.app/Contents/MacOS/Pane
+open Pane.app
 ```
 
-## Run
+Requires macOS 13+. Automation permission for terminal apps is prompted on first use.
 
-```bash
-.build/release/Pane
-```
+Layouts are stored as JSON in `~/.config/pane/layouts/`.
 
-Or build with Xcode — open `Package.swift`.
-
-## License
+### License
 
 MIT

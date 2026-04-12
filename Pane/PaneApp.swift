@@ -1,26 +1,32 @@
 import SwiftUI
+import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private let hotkeyEngine = HotkeyEngine()
-    private let store = LayoutStore()
-    private let executor = LayoutExecutor()
+    private var statusItem: NSStatusItem!
+    private var popover: NSPopover!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        registerHotkeys()
-        hotkeyEngine.startListening()
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+
+        if let button = statusItem.button {
+            button.image = NSImage(systemSymbolName: "rectangle.split.2x2", accessibilityDescription: "Pane")
+            button.action = #selector(togglePopover)
+            button.target = self
+        }
+
+        popover = NSPopover()
+        popover.contentSize = NSSize(width: 260, height: 320)
+        popover.behavior = .transient
+        popover.contentViewController = NSHostingController(rootView: MenuBarView())
     }
 
-    func registerHotkeys() {
-        guard let layouts = try? store.loadAll() else { return }
-
-        for layout in layouts {
-            guard let shortcut = layout.shortcut else { continue }
-            let capturedLayout = layout
-            hotkeyEngine.register(shortcut: shortcut) { [executor] in
-                Task {
-                    await executor.execute(capturedLayout)
-                }
-            }
+    @objc func togglePopover() {
+        guard let button = statusItem.button else { return }
+        if popover.isShown {
+            popover.performClose(nil)
+        } else {
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 }
@@ -30,19 +36,9 @@ struct PaneApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        MenuBarExtra("Pane", systemImage: "rectangle.split.2x2") {
-            MenuBarView()
-        }
-        .menuBarExtraStyle(.window)
-
-        Window("Pane Setup", id: "onboarding") {
-            OnboardingView()
-        }
-        .windowResizability(.contentSize)
-        .defaultPosition(.center)
-
         Settings {
-            PreferencesView()
+            Text("Pane Settings")
+                .frame(width: 200, height: 100)
         }
     }
 }

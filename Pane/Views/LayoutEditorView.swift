@@ -4,7 +4,6 @@ struct LayoutEditorView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var name: String
-    @State private var shortcut: String
     @State private var selectedTemplate: GridTemplateOption?
     @State private var zones: [Zone]
 
@@ -17,7 +16,6 @@ struct LayoutEditorView: View {
         if let layout {
             self.existingID = layout.id
             _name = State(initialValue: layout.name)
-            _shortcut = State(initialValue: layout.shortcut ?? "")
             _selectedTemplate = State(
                 initialValue: gridTemplateOptions.first { $0.id == layout.gridTemplate }
             )
@@ -25,64 +23,89 @@ struct LayoutEditorView: View {
         } else {
             self.existingID = nil
             _name = State(initialValue: "")
-            _shortcut = State(initialValue: "")
             _selectedTemplate = State(initialValue: nil)
             _zones = State(initialValue: [])
         }
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Layout Name")
-                        .font(.headline)
-                    TextField("e.g. Coding", text: $name)
-                        .textFieldStyle(.roundedBorder)
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text(existingID != nil ? "Edit Layout" : "New Layout")
+                    .font(.system(size: 15, weight: .semibold))
+                Spacer()
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary.opacity(0.4))
                 }
+                .buttonStyle(.plain)
+            }
+            .padding(16)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Shortcut (optional)")
-                        .font(.headline)
-                    TextField("e.g. ctrl+option+1", text: $shortcut)
-                        .textFieldStyle(.roundedBorder)
-                }
+            Divider().opacity(0.15)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Grid Template")
-                        .font(.headline)
-                    GridTemplatePicker(selectedTemplate: $selectedTemplate)
-                }
-                .onChange(of: selectedTemplate?.id) { _ in
-                    updateZones()
-                }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Name
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Name")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                        TextField("e.g. Coding", text: $name)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(size: 13))
+                    }
 
-                if !zones.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Configure Zones")
-                            .font(.headline)
-                        ForEach($zones) { $zone in
-                            ZoneConfigView(zone: $zone)
+                    // Grid template
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Layout")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                        GridTemplatePicker(selectedTemplate: $selectedTemplate)
+                    }
+                    .onChange(of: selectedTemplate?.id) { _ in updateZones() }
+
+                    // Zone configs
+                    if !zones.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Apps")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                            ForEach($zones) { $zone in
+                                ZoneConfigView(zone: $zone)
+                            }
                         }
                     }
                 }
-
-                HStack {
-                    Spacer()
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    Button("Save") {
-                        saveLayout()
-                    }
-                    .disabled(name.isEmpty || selectedTemplate == nil)
-                    .buttonStyle(.borderedProminent)
-                }
+                .padding(16)
             }
-            .padding(20)
+
+            Divider().opacity(0.15)
+
+            // Footer
+            HStack {
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .foregroundColor(.secondary)
+                Button {
+                    saveLayout()
+                } label: {
+                    Text("Save")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 6)
+                        .background(warmAccent)
+                        .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                .disabled(name.isEmpty || selectedTemplate == nil)
+            }
+            .padding(16)
         }
-        .frame(width: 600)
-        .frame(minHeight: 500)
+        .frame(width: 460, height: 480)
     }
 
     private func updateZones() {
@@ -90,29 +113,22 @@ struct LayoutEditorView: View {
             zones = []
             return
         }
-
         zones = template.zones.map { position in
             if let existing = zones.first(where: { $0.position == position }) {
                 return existing
             }
-            return Zone(position: position, appBundleID: "", url: nil, path: nil, displayIndex: 0)
+            return Zone(position: position, appBundleID: "", path: nil, displayIndex: 0)
         }
     }
 
     private func saveLayout() {
         guard let template = selectedTemplate else { return }
-
         var layout = Layout(
             name: name,
-            shortcut: shortcut.isEmpty ? nil : shortcut,
             gridTemplate: template.id,
             zones: zones
         )
-
-        if let existingID {
-            layout.id = existingID
-        }
-
+        if let existingID { layout.id = existingID }
         try? store.save(layout)
         onSave?()
         dismiss()

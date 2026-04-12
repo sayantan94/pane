@@ -1,43 +1,59 @@
 import AppKit
 
+struct ExecutionResult {
+    var successes: [String] = []
+    var errors: [String] = []
+    var isFullSuccess: Bool { errors.isEmpty && !successes.isEmpty }
+}
+
 final class LayoutExecutor {
     private let appLauncher = AppLauncher()
     private let windowManager = WindowManager()
+    private let spaceManager = SpaceManager()
 
-    static func resolveFrames(zones: [Zone], screens: [CGRect]) -> [CGRect] {
-        zones.map { zone in
-            let screenIndex = zone.displayIndex < screens.count ? zone.displayIndex : 0
-            let screen = screens.isEmpty
-                ? CGRect(x: 0, y: 0, width: 1920, height: 1080)
-                : screens[screenIndex]
-            return zone.position.frame(in: screen)
-        }
-    }
+    func execute(_ layout: Layout, onDisplay displayIndex: Int = 0) async -> ExecutionResult {
+        NSLog("[Pane] Executing layout: \(layout.name) on display \(displayIndex)")
 
-    func execute(_ layout: Layout) async {
-        let screens = NSScreen.screens.map { $0.visibleFrame }
-        let frames = Self.resolveFrames(zones: layout.zones, screens: screens)
+        let screens = NSScreen.screens
+        let targetScreen = displayIndex < screens.count ? screens[displayIndex] : screens[0]
+        let screenFrame = targetScreen.visibleFrame
+        let currentSpace = spaceManager.currentSpaceID()
 
-        for (index, zone) in layout.zones.enumerated() {
-            let frame = frames[index]
+        var result = ExecutionResult()
 
+        for zone in layout.zones {
+            let frame = zone.position.frame(in: screenFrame)
             do {
                 let app = try await appLauncher.launchIfNeeded(bundleID: zone.appBundleID)
 
-                if let url = zone.url {
-                    try await appLauncher.openURL(url, inBrowser: zone.appBundleID)
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                }
-
-                if let path = zone.path {
+                if let path = zone.path, !path.isEmpty {
                     appLauncher.openTerminalAtPath(path, terminalBundleID: zone.appBundleID)
-                    try? await Task.sleep(nanoseconds: 500_000_000)
+                } else {
+                    appLauncher.openNewWindow(bundleID: zone.appBundleID)
+                }
+                try? await Task.sleep(nanoseconds: 600_000_000)
+
+                if let spaceID = currentSpace {
+                    let wids = windowIDs(for: app)
+                    if !wids.isEmpty {
+                        spaceManager.moveWindows(wids, toSpace: spaceID)
+                        try? await Task.sleep(nanoseconds: 300_000_000)
+                    }
                 }
 
+                app.activate()
+                try? await Task.sleep(nanoseconds: 200_000_000)
                 try windowManager.positionWindow(of: app, to: frame)
+                result.successes.append(app.localizedName ?? zone.appBundleID)
             } catch {
-                print("Failed to set up zone \(zone.position): \(error)")
+                let appName = NSWorkspace.shared.runningApplications
+                    .first { $0.bundleIdentifier == zone.appBundleID }?.localizedName ?? zone.appBundleID
+                let msg = "\(appName): \(error.localizedDescription)"
+                result.errors.append(msg)
+                NSLog("[Pane] FAILED zone \(zone.position): \(error)")
             }
         }
+        NSLog("[Pane] Layout execution complete")
+        return result
     }
 }

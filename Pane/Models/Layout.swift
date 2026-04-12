@@ -21,23 +21,21 @@ struct Zone: Codable, Identifiable {
     var id = UUID()
     var position: ZonePosition
     var appBundleID: String
-    var url: String?
     var path: String?
     var displayIndex: Int
 
     enum CodingKeys: String, CodingKey {
-        case position, appBundleID, url, path, displayIndex
+        case position, appBundleID, path, displayIndex
     }
 }
 
 struct Layout: Codable, Identifiable {
     var id = UUID()
     var name: String
-    var shortcut: String?
     var gridTemplate: String
     var zones: [Zone]
 
     enum CodingKeys: String, CodingKey {
-        case id, name, shortcut, gridTemplate, zones
+        case id, name, gridTemplate, zones
     }
 }

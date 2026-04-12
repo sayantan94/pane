@@ -2,50 +2,38 @@ import Foundation
 
 final class LayoutStore {
     private let directory: URL
+    private let encoder: JSONEncoder = {
+        let e = JSONEncoder()
+        e.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return e
+    }()
+    private let decoder = JSONDecoder()
 
     init(directory: URL? = nil) {
-        if let directory {
-            self.directory = directory
-        } else {
-            self.directory = FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent(".config/pane/layouts")
-        }
+        self.directory = directory ?? FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".config/pane/layouts")
     }
 
     func save(_ layout: Layout) throws {
-        try ensureDirectory()
-        let fileURL = directory.appendingPathComponent("\(layout.id.uuidString).json")
-
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let data = try encoder.encode(layout)
-        try data.write(to: fileURL)
+        try data.write(to: directory.appendingPathComponent("\(layout.id.uuidString).json"))
     }
 
     func loadAll() throws -> [Layout] {
-        try ensureDirectory()
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let files = try FileManager.default.contentsOfDirectory(
-            at: directory,
-            includingPropertiesForKeys: nil
+            at: directory, includingPropertiesForKeys: nil
         ).filter { $0.pathExtension == "json" }
 
-        return try files.compactMap { fileURL in
-            let data = try Data(contentsOf: fileURL)
-            return try JSONDecoder().decode(Layout.self, from: data)
+        return files.compactMap { url in
+            try? decoder.decode(Layout.self, from: Data(contentsOf: url))
         }
     }
 
     func delete(_ id: UUID) throws {
-        let fileURL = directory.appendingPathComponent("\(id.uuidString).json")
-        try FileManager.default.removeItem(at: fileURL)
-    }
-
-    private func ensureDirectory() throws {
-        if !FileManager.default.fileExists(atPath: directory.path) {
-            try FileManager.default.createDirectory(
-                at: directory,
-                withIntermediateDirectories: true
-            )
-        }
+        try FileManager.default.removeItem(
+            at: directory.appendingPathComponent("\(id.uuidString).json")
+        )
     }
 }

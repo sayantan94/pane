@@ -7,34 +7,27 @@ struct GridTemplateOption: Identifiable {
 }
 
 let gridTemplateOptions: [GridTemplateOption] = [
-    GridTemplateOption(id: "left-half+right-half", label: "Two Halves (Vertical)", zones: [.leftHalf, .rightHalf]),
-    GridTemplateOption(id: "top-half+bottom-half", label: "Two Halves (Horizontal)", zones: [.topHalf, .bottomHalf]),
-    GridTemplateOption(id: "left-third+center-third+right-third", label: "Three Thirds", zones: [.leftThird, .centerThird, .rightThird]),
-    GridTemplateOption(id: "left-third+right-two-thirds", label: "Third + Two Thirds", zones: [.leftThird, .rightTwoThirds]),
-    GridTemplateOption(id: "left-two-thirds+right-third", label: "Two Thirds + Third", zones: [.leftTwoThirds, .rightThird]),
-    GridTemplateOption(id: "top-left+top-right+bottom-left+bottom-right", label: "Four Quarters", zones: [.topLeft, .topRight, .bottomLeft, .bottomRight]),
-    GridTemplateOption(id: "left-half+top-right+bottom-right", label: "Half + Two Quarters", zones: [.leftHalf, .topRight, .bottomRight]),
-    GridTemplateOption(id: "maximize", label: "Full Screen", zones: [.maximize]),
+    GridTemplateOption(id: "left-half+right-half", label: "Left | Right", zones: [.leftHalf, .rightHalf]),
+    GridTemplateOption(id: "top-half+bottom-half", label: "Top | Bottom", zones: [.topHalf, .bottomHalf]),
+    GridTemplateOption(id: "left-third+center-third+right-third", label: "Thirds", zones: [.leftThird, .centerThird, .rightThird]),
+    GridTemplateOption(id: "left-third+right-two-thirds", label: "1/3 + 2/3", zones: [.leftThird, .rightTwoThirds]),
+    GridTemplateOption(id: "left-two-thirds+right-third", label: "2/3 + 1/3", zones: [.leftTwoThirds, .rightThird]),
+    GridTemplateOption(id: "top-left+top-right+bottom-left+bottom-right", label: "Quarters", zones: [.topLeft, .topRight, .bottomLeft, .bottomRight]),
+    GridTemplateOption(id: "left-half+top-right+bottom-right", label: "Half + 2Q", zones: [.leftHalf, .topRight, .bottomRight]),
+    GridTemplateOption(id: "maximize", label: "Full", zones: [.maximize]),
 ]
 
 struct GridTemplatePicker: View {
     @Binding var selectedTemplate: GridTemplateOption?
 
     var body: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-        ], spacing: 12) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
             ForEach(gridTemplateOptions) { template in
                 GridTemplateCell(
                     template: template,
                     isSelected: selectedTemplate?.id == template.id
                 )
-                .onTapGesture {
-                    selectedTemplate = template
-                }
+                .onTapGesture { selectedTemplate = template }
             }
         }
     }
@@ -45,38 +38,33 @@ struct GridTemplateCell: View {
     let isSelected: Bool
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 3) {
             ZStack {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.gray.opacity(0.1))
-                    .frame(width: 80, height: 50)
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(Color.primary.opacity(0.04))
+                    .frame(width: 72, height: 44)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(isSelected ? Color.accentColor : Color.gray.opacity(0.3), lineWidth: isSelected ? 2 : 1)
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(isSelected ? warmAccent : Color.gray.opacity(0.2), lineWidth: isSelected ? 1.5 : 0.5)
                     )
 
                 GeometryReader { geo in
+                    let bounds = CGRect(x: 3, y: 3, width: geo.size.width - 6, height: geo.size.height - 6)
                     ForEach(Array(template.zones.enumerated()), id: \.offset) { _, zone in
-                        let zoneFrame = zone.frame(
-                            in: CGRect(x: 2, y: 2, width: geo.size.width - 4, height: geo.size.height - 4)
-                        )
+                        let f = zone.frame(in: bounds)
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(isSelected ? Color.accentColor.opacity(0.3) : Color.gray.opacity(0.2))
-                            .frame(width: zoneFrame.width - 1, height: zoneFrame.height - 1)
-                            .position(
-                                x: zoneFrame.midX,
-                                y: zoneFrame.midY
-                            )
+                            .fill(isSelected ? warmAccent.opacity(0.4) : Color.gray.opacity(0.15))
+                            .frame(width: f.width - 1.5, height: f.height - 1.5)
+                            .position(x: f.midX, y: f.midY)
                     }
                 }
-                .frame(width: 80, height: 50)
+                .frame(width: 72, height: 44)
             }
 
             Text(template.label)
-                .font(.caption2)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .frame(width: 80)
+                .font(.system(size: 9))
+                .foregroundColor(isSelected ? warmAccent : .secondary.opacity(0.7))
+                .lineLimit(1)
         }
     }
 }

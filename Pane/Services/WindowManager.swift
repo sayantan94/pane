@@ -1,47 +1,39 @@
-import ApplicationServices
 import AppKit
 
 enum WindowManagerError: Error {
-    case noAccessibility
     case windowNotFound
     case positionFailed
 }
 
 final class WindowManager {
-    func positionWindow(
-        of app: NSRunningApplication,
-        to frame: CGRect
-    ) throws {
-        guard AccessibilityHelper.isTrusted else {
-            throw WindowManagerError.noAccessibility
-        }
 
-        let appElement = AXUIElementCreateApplication(app.processIdentifier)
-
-        var windowRef: CFTypeRef?
-        let windowResult = AXUIElementCopyAttributeValue(
-            appElement,
-            kAXWindowsAttribute as CFString,
-            &windowRef
-        )
-
-        guard windowResult == .success,
-              let windows = windowRef as? [AXUIElement],
-              let window = windows.first
-        else {
+    func positionWindow(of app: NSRunningApplication, to frame: CGRect) throws {
+        guard let appName = app.localizedName else {
             throw WindowManagerError.windowNotFound
         }
 
-        var position = CGPoint(x: frame.origin.x, y: frame.origin.y)
-        var size = CGSize(width: frame.size.width, height: frame.size.height)
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? 900
+        let x1 = Int(frame.origin.x)
+        let y1 = Int(primaryHeight - frame.origin.y - frame.size.height)
+        let x2 = x1 + Int(frame.size.width)
+        let y2 = y1 + Int(frame.size.height)
 
-        guard let positionValue = AXValueCreate(.cgPoint, &position),
-              let sizeValue = AXValueCreate(.cgSize, &size)
-        else {
+        let script = NSAppleScript(source: """
+        tell application "\(appName)"
+            activate
+            set bounds of front window to {\(x1), \(y1), \(x2), \(y2)}
+        end tell
+        """)
+
+        var error: NSDictionary?
+        script?.executeAndReturnError(&error)
+
+        if let error {
+            let errMsg = error[NSAppleScript.errorMessage] as? String ?? "unknown"
+            NSLog("[Pane] set bounds failed for \(appName): \(errMsg)")
             throw WindowManagerError.positionFailed
         }
 
-        AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, positionValue)
-        AXUIElementSetAttributeValue(window, kAXSizeAttribute as CFString, sizeValue)
+        NSLog("[Pane] Positioned \(appName) to {\(x1), \(y1), \(x2), \(y2)}")
     }
 }
