@@ -13,10 +13,10 @@ struct ZoneConfigView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(formatZoneName(zone.position))
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(warmAccent)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.accentColor)
 
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 Picker("", selection: $zone.appBundleID) {
                     Text("Select terminal...").tag("")
                     ForEach(installedApps, id: \.bundleID) { app in
@@ -32,19 +32,21 @@ struct ZoneConfigView: View {
                         }
                     }
                     .labelsHidden()
-                    .frame(width: 110)
+                    .frame(width: 100)
                 }
             }
 
-            TextField("Directory path (optional)", text: Binding(
-                get: { zone.path ?? "" },
-                set: { zone.path = $0.isEmpty ? nil : $0 }
-            ))
-            .textFieldStyle(.roundedBorder)
-            .font(.system(size: 12))
+            if !zone.appBundleID.isEmpty {
+                TextField("Directory path (optional)", text: Binding(
+                    get: { zone.path ?? "" },
+                    set: { zone.path = $0.isEmpty ? nil : $0 }
+                ))
+                .textFieldStyle(.roundedBorder)
+                .font(.system(size: 12))
+            }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.03)))
+        .background(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.1)))
         .onAppear { loadInstalledApps() }
     }
 

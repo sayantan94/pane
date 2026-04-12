@@ -1,9 +1,10 @@
 import SwiftUI
 
-struct GridTemplateOption: Identifiable {
+struct GridTemplateOption: Identifiable, Equatable {
     let id: String
     let label: String
     let zones: [ZonePosition]
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
 }
 
 let gridTemplateOptions: [GridTemplateOption] = [
@@ -23,48 +24,37 @@ struct GridTemplatePicker: View {
     var body: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
             ForEach(gridTemplateOptions) { template in
-                GridTemplateCell(
-                    template: template,
-                    isSelected: selectedTemplate?.id == template.id
-                )
+                let selected = selectedTemplate?.id == template.id
+                VStack(spacing: 4) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(selected ? Color.accentColor : Color.secondary.opacity(0.2), lineWidth: selected ? 2 : 1)
+                            .frame(width: 76, height: 46)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(selected ? Color.accentColor.opacity(0.1) : Color.clear)
+                            )
+
+                        GeometryReader { geo in
+                            let b = CGRect(x: 4, y: 4, width: geo.size.width - 8, height: geo.size.height - 8)
+                            ForEach(Array(template.zones.enumerated()), id: \.offset) { _, zone in
+                                let f = zone.frame(in: b)
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(selected ? Color.accentColor.opacity(0.4) : Color.secondary.opacity(0.15))
+                                    .frame(width: max(f.width - 2, 1), height: max(f.height - 2, 1))
+                                    .position(x: f.midX, y: f.midY)
+                            }
+                        }
+                        .frame(width: 76, height: 46)
+                    }
+
+                    Text(template.label)
+                        .font(.system(size: 9))
+                        .foregroundColor(selected ? .accentColor : .secondary)
+                        .lineLimit(1)
+                }
                 .onTapGesture { selectedTemplate = template }
             }
-        }
-    }
-}
-
-struct GridTemplateCell: View {
-    let template: GridTemplateOption
-    let isSelected: Bool
-
-    var body: some View {
-        VStack(spacing: 3) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(Color.primary.opacity(0.04))
-                    .frame(width: 72, height: 44)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(isSelected ? warmAccent : Color.gray.opacity(0.2), lineWidth: isSelected ? 1.5 : 0.5)
-                    )
-
-                GeometryReader { geo in
-                    let bounds = CGRect(x: 3, y: 3, width: geo.size.width - 6, height: geo.size.height - 6)
-                    ForEach(Array(template.zones.enumerated()), id: \.offset) { _, zone in
-                        let f = zone.frame(in: bounds)
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(isSelected ? warmAccent.opacity(0.4) : Color.gray.opacity(0.15))
-                            .frame(width: f.width - 1.5, height: f.height - 1.5)
-                            .position(x: f.midX, y: f.midY)
-                    }
-                }
-                .frame(width: 72, height: 44)
-            }
-
-            Text(template.label)
-                .font(.system(size: 9))
-                .foregroundColor(isSelected ? warmAccent : .secondary.opacity(0.7))
-                .lineLimit(1)
         }
     }
 }

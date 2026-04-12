@@ -6,16 +6,16 @@
 
 Pick a grid template, assign terminals to zones with optional directory paths, and trigger it — Pane opens new windows and tiles them into position. Works across multiple monitors.
 
-![Screenshot](assets/screenshot.png)
+![Screenshot](assets/img.png)
 
 ---
 
 ### Build & Run
 
 ```bash
-swift build -c release
+swift build -c release --arch arm64 --arch x86_64
 mkdir -p Pane.app/Contents/MacOS
-cp .build/release/Pane Pane.app/Contents/MacOS/Pane
+cp .build/apple/Products/Release/Pane Pane.app/Contents/MacOS/Pane
 open Pane.app
 ```
 
