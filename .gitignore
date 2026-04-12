@@ -6,3 +6,5 @@ xcuserdata/
 docs/
 helper/
 PaneHelper
+*.dmg
+dmg_staging/

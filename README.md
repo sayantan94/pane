@@ -13,10 +13,8 @@ Pick a grid template, assign terminals to zones with optional directory paths, a
 ### Build & Run
 
 ```bash
-swift build -c release --arch arm64 --arch x86_64
-mkdir -p Pane.app/Contents/MacOS
-cp .build/apple/Products/Release/Pane Pane.app/Contents/MacOS/Pane
-open Pane.app
+make install
+open /Applications/Pane.app
 ```
 
 Requires macOS 13+. Automation permission for terminal apps is prompted on first use.
