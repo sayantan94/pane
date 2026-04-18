@@ -1,8 +1,15 @@
 import AppKit
 
-enum WindowManagerError: Error {
+enum WindowManagerError: Error, LocalizedError {
     case windowNotFound
-    case positionFailed
+    case positionFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .windowNotFound: return "No window found"
+        case .positionFailed(let msg): return msg
+        }
+    }
 }
 
 final class WindowManager {
@@ -18,22 +25,42 @@ final class WindowManager {
         let x2 = x1 + Int(frame.size.width)
         let y2 = y1 + Int(frame.size.height)
 
-        let script = NSAppleScript(source: """
-        tell application "\(appName)"
-            activate
-            set bounds of front window to {\(x1), \(y1), \(x2), \(y2)}
-        end tell
-        """)
+        // Try app-specific AppleScript first, fall back to generic
+        let script: String
+        switch app.bundleIdentifier {
+        case "com.googlecode.iterm2":
+            script = """
+            tell application "iTerm"
+                activate
+                if (count of windows) > 0 then
+                    set bounds of front window to {\(x1), \(y1), \(x2), \(y2)}
+                else
+                    error "No iTerm windows open"
+                end if
+            end tell
+            """
+        default:
+            script = """
+            tell application "\(appName)"
+                activate
+                if (count of windows) > 0 then
+                    set bounds of front window to {\(x1), \(y1), \(x2), \(y2)}
+                else
+                    error "No windows open for \(appName)"
+                end if
+            end tell
+            """
+        }
 
         var error: NSDictionary?
-        script?.executeAndReturnError(&error)
+        NSAppleScript(source: script)?.executeAndReturnError(&error)
 
         if let error {
             let errMsg = error[NSAppleScript.errorMessage] as? String ?? "unknown"
-            NSLog("[Pane] set bounds failed for \(appName): \(errMsg)")
-            throw WindowManagerError.positionFailed
+            paneDebug("[Pane] set bounds failed for \(appName): \(errMsg)")
+            throw WindowManagerError.positionFailed(errMsg)
         }
 
-        NSLog("[Pane] Positioned \(appName) to {\(x1), \(y1), \(x2), \(y2)}")
+        paneDebug("[Pane] Positioned \(appName) to {\(x1), \(y1), \(x2), \(y2)}")
     }
 }

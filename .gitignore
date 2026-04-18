@@ -1,6 +1,6 @@
 .build/
 .DS_Store
-Pane.app/
+Pane.app/Contents/MacOS/
 *.xcodeproj/
 xcuserdata/
 docs/
@@ -8,3 +8,5 @@ helper/
 PaneHelper
 *.dmg
 dmg_staging/
+build/
+Pane/img.png

@@ -37,15 +37,28 @@ final class AppLauncher {
     }
 
     func openNewWindow(bundleID: String) {
+        guard let appName = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)?
+            .deletingPathExtension().lastPathComponent else { return }
+
         let script: String
         switch bundleID {
         case "com.googlecode.iterm2":
             script = "tell application \"iTerm\" to create window with default profile"
-        default:
+        case "com.apple.Terminal":
             script = "tell application \"Terminal\" to do script \"\""
+        default:
+            // Generic: activate the app (it will create/show a window)
+            script = """
+            tell application "\(appName)"
+                activate
+                try
+                    make new document
+                end try
+            end tell
+            """
         }
 
-        NSLog("[Pane] Creating new window for \(bundleID)")
+        NSLog("[Pane] Creating new window for \(appName)")
         if let s = NSAppleScript(source: script) {
             var error: NSDictionary?
             s.executeAndReturnError(&error)

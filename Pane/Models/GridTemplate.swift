@@ -36,6 +36,8 @@ extension ZonePosition {
             return CGRect(x: x + w / 2, y: y + h / 2, width: w / 2, height: h / 2)
         case .maximize:
             return CGRect(x: x, y: y, width: w, height: h)
+        case .custom:
+            return CGRect(x: x, y: y, width: w, height: h)
         }
     }
 }
