@@ -2,19 +2,15 @@
 
 ---
 
-**Pane** is a macOS menu bar app that launches and arranges terminal windows in configurable layouts.
+**Pane** is a macOS menu bar app that arranges your app windows into saved layouts.
 
-Pick a grid template, assign terminals to zones with optional directory paths, and trigger it. Pane opens new windows and tiles them into position. Works across multiple monitors.
+Click a layout — Pane launches the apps, positions their windows into a grid, runs your terminal commands, and gets out of the way. Works with any app: IntelliJ, VS Code, Cursor, Slack, Notion, iTerm, Safari. Not just terminals.
 
 ![Screenshot](assets/img.png)
 
 ---
 
 ### Install
-
-You can build from source or download a pre-built DMG.
-
-**Build from source**
 
 You'll need Xcode Command Line Tools. If you don't have them, run `xcode-select --install` first.
 
@@ -25,21 +21,34 @@ make install
 open /Applications/Pane.app
 ```
 
-**Download DMG**
+Or grab `Pane.dmg` from [Releases](https://github.com/sayantan94/pane/releases/latest), open it, drag Pane to Applications.
 
-Grab `Pane.dmg` from [Releases](https://github.com/sayantan94/pane/releases/latest), open it, drag Pane to Applications.
+On first launch, macOS may say it can't verify the app. Right-click Pane.app and choose Open.
 
-On first launch, macOS may say it can't verify the app. Just right-click on Pane.app and choose Open.
+### What it does
 
-### Getting started
+- **Grid layouts** — halves, thirds, quarters, or a custom drag-to-resize canvas that snaps to halves / thirds / quarters.
+- **Capture current windows** — arrange once by hand, hit *Capture Current Windows*, name it. Pane saves the exact positions as a layout.
+- **Any app, any window** — terminals get fresh sessions with your `cd` + commands. Everything else (IntelliJ, VS Code, Electron apps, etc.) is positioned via the Accessibility API.
+- **Multi-monitor aware** — pick a display at run-time from a visual picker that mirrors your actual screen arrangement.
+- **Auto-apply by display setup** — tag a layout as auto-apply and it runs automatically when the same display arrangement returns (e.g. docking back to your external monitor).
+- **Per-zone terminal commands** — add lines like `bun dev` or `tail -f log.out` and they run after the `cd`.
+- **Menu bar status** — the status icon reflects execution state (running, success, error) so you know what's happening at a glance.
 
-Click the menu bar icon and hit + to create a layout. Pick a grid (halves, thirds, quarters), assign a terminal and directory path to each zone, save it.
+### Permissions
 
-Click the layout name to run it. If you have multiple monitors, it'll ask which display to use.
+Pane needs two macOS permissions on first use:
 
-macOS will ask to allow Automation for your terminal app the first time. Just allow it.
+- **Automation** — for iTerm and Terminal (creating new sessions, setting bounds). Granted the first time Pane sends AppleEvents — macOS will prompt.
+- **Accessibility** — for everything else (IntelliJ, VS Code, Cursor, Slack, etc.). Granted in *System Settings → Privacy & Security → Accessibility*. Pane shows a guided panel that polls for the permission and auto-continues the moment you grant it.
 
-Layouts are stored as JSON in `~/.config/pane/layouts/`.
+If you rebuild from source, the app's code signature changes, which can invalidate prior grants. Pane's primer includes a *Restart Pane* button for the cases where macOS caches the old answer.
+
+### Where your data lives
+
+- Layouts: `~/.config/pane/layouts/`
+- Known apps: `~/.config/pane/custom-apps.json`
+- Debug log: `~/.config/pane/debug.log`
 
 ### License
 

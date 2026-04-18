@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>Pane</string>
 	<key>CFBundleExecutable</key>
 	<string>Pane</string>
 	<key>CFBundleIdentifier</key>
@@ -12,23 +14,21 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>Pane</string>
-	<key>CFBundleDisplayName</key>
-	<string>Pane</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>2.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>13.0</string>
 	<key>LSUIElement</key>
 	<true/>
-	<key>NSHighResolutionCapable</key>
-	<true/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Pane needs to send Apple events to your apps (iTerm, Terminal, and others) to create and position their windows for your saved layouts.</string>
 	<key>NSAppleScriptEnabled</key>
+	<true/>
+	<key>NSHighResolutionCapable</key>
 	<true/>
 </dict>
 </plist>
